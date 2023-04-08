@@ -1,94 +1,90 @@
-const User = require("../Models/User")
+const User = require("../Models/User");
 const bcrypt = require('bcryptjs');
-
+const jwt = require("jsonwebtoken");
 
 
 const ServiceController = {
 
-
-
-    //post
+    // post
     register: async (req, res) => {
 
-        const { name, password } = req.body
+        const { name, email, password, passwordconf } = req.body;
 
-        // validation
+        const user = await User.findOne({ name });
+        const emailExists = await User.findOne({ email });
+
+        if (user) {
+            return res.status(422).json({ error: "Usuário já existe" });
+        }
+
+        if (emailExists) {
+            return res.status(422).json({ error: "E-mail já existe" });
+        }
+
         if (!name) {
-            return res.status(422).json({ msg: "Nome Obrigatorio" })
+            return res.status(422).json({ error: "Nome obrigatório" });
         }
 
-        // Validação de senha
-        if (!password || password.length < 8) {
-            return res.status(422).json({ msg: "Senha é obrigatória e deve ter pelo menos 8 caracteres" })
+        if (!email) {
+            return res.status(422).json({ error: "E-mail Obrigatório" });
         }
 
-        // Verifica se o usuário já existe
-        const useExists = await User.findOne({ name: name })
-        if (useExists) {
-            return res.status(422).json({ msg: "Usuário já existe" })
+        if (password !== passwordconf) {
+            return res.status(422).json({ error: "As senhas não correspondem" });
         }
 
-        // Cria o hash da senha
-        const salt = await bcrypt.genSalt(12)
-        const passwordhash = await bcrypt.hash(password, salt)
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(password, salt);
 
         try {
 
             //Create User
-            const estructMovies = {
+            const Users = {
                 name,
-                password: passwordhash,
+                email,
+                password: passwordHash,
             };
 
-            //resposta db
-            const response = await User.create(estructMovies)
+            const NewUser = await User.create(Users)
 
-            res.status(201).json({ response, msg: "Usuario Cadastrado com sucesso" });
+            if (!NewUser) {
+                return res.status(422).json({ errors: ["Houver um erro,tente novamente mais tarde"] })
+
+            }
+            //return success
+            res.status(201).json({ message: "Cadastro feito com sucesso" });
+
         } catch (error) {
             console.log(`Erro post ${error}`);
         }
     },
 
 
-    //post
+    // rota para login
     login: async (req, res) => {
-        const { name, password } = req.body
-
-        //validation
-        if (!name) {
-            return res.status(422).json({ msg: "Nome Obrigatorio" })
-        }
-
-        //check user
-        const user = await User.findOne({ name: name })
+        const { name, password } = req.body;
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        let user = await User.findOne({ name });
 
         if (!user) {
-            return res.status(404).json({ msg: "Usuário ou senha inválidos" })
+            return res.status(400).json({ msg: "Usuário não encontrado" });
         }
 
-        //check pass match  //verify pass if is true or false for login
-        const checkpass = await bcrypt.compare(password, user.password)
-
-        if (!checkpass) {
-
-            return res.status(422).json({ msg: "Usuário ou senha inválidos" })
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ msg: "Senha incorreta" });
         }
 
-        try {
+        //return user with token
+        res.status(201).json({
+            _id: user._id,
+            name: user.name,
+            token: GenerateToken(user._id),
+        })
 
-            if (checkpass && user) {
-
-
-                return checkpass;
-            } else {
-                res.status(422).json(false);
-            }
-
-        } catch (error) {
-            console.log(`Erro post ${error}`);
-        }
     },
 
+    
     //get
     getAll: async (req, res) => {
         try {
