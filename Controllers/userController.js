@@ -1,99 +1,150 @@
-const User = require("../Models/User");
+const User = require("../models/User")
 const bcrypt = require('bcryptjs');
-const jwt = require("jsonwebtoken");
 
 
 
-//Genenate user token
-const GenerateToken = (id) => {
-    return jwt.sign({ id }, 'KS1486735ANFSAN36454BFGSAF45471PKPEKGPSAGK1454EDGG', {
-        expiresIn: "7d"
-    });
-};
+const ServiceController = {
 
 
 
-const ServiceControllerUser = {
-
-    // post
+    //post
     register: async (req, res) => {
 
-        const { name, email, password, passwordconf } = req.body;
+        const { name, password } = req.body
 
-        const user = await User.findOne({ name });
-        const emailExists = await User.findOne({ email });
-
-        if (user) {
-            return res.status(422).json({ error: "Usuário já existe" });
-        }
-
-        if (emailExists) {
-            return res.status(422).json({ error: "E-mail já existe" });
-        }
-
+        // validation
         if (!name) {
-            return res.status(422).json({ error: "Nome obrigatório" });
+            return res.status(422).json({ msg: "Nome Obrigatorio" })
         }
 
-        if (!email) {
-            return res.status(422).json({ error: "E-mail Obrigatório" });
+        // Validação de senha
+        if (!password || password.length < 8) {
+            return res.status(422).json({ msg: "Senha é obrigatória e deve ter pelo menos 8 caracteres" })
         }
 
-        if (password !== passwordconf) {
-            return res.status(422).json({ error: "As senhas não correspondem" });
+        // Verifica se o usuário já existe
+        const useExists = await User.findOne({ name: name })
+        if (useExists) {
+            return res.status(422).json({ msg: "Usuário já existe" })
         }
 
-        const salt = await bcrypt.genSalt(10);
-        const passwordHash = await bcrypt.hash(password, salt);
+        // Cria o hash da senha
+        const salt = await bcrypt.genSalt(12)
+        const passwordhash = await bcrypt.hash(password, salt)
 
         try {
 
             //Create User
-            const Users = {
+            const estructMovies = {
                 name,
-                email,
-                password: passwordHash,
+                password: passwordhash,
             };
 
-            const NewUser = await User.create(Users)
+            //resposta db
+            const response = await User.create(estructMovies)
 
-            if (!NewUser) {
-                return res.status(422).json({ errors: ["Houver um erro,tente novamente mais tarde"] })
+            res.status(201).json({ response, msg: "Usuario Cadastrado com sucesso" });
+        } catch (error) {
+            console.log(`Erro post ${error}`);
+        }
+    },
 
+
+    //post
+    login: async (req, res) => {
+        const { name, password } = req.body
+
+        //validation
+        if (!name) {
+            return res.status(422).json({ msg: "Nome Obrigatorio" })
+        }
+
+        //check user
+        const user = await User.findOne({ name: name })
+
+        if (!user) {
+            return res.status(404).json({ msg: "Usuário ou senha inválidos" })
+        }
+
+        //check pass match  //verify pass if is true or false for login
+        const checkpass = await bcrypt.compare(password, user.password)
+
+        if (!checkpass) {
+
+            return res.status(422).json({ msg: "Usuário ou senha inválidos" })
+        }
+
+        try {
+
+            if (checkpass && user) {
+
+
+                return checkpass;
+            } else {
+                res.status(422).json(false);
             }
-            //return success
-            res.status(201).json({ message: "Cadastro feito com sucesso" });
 
         } catch (error) {
             console.log(`Erro post ${error}`);
         }
     },
 
-    // rota para login
-    login: async (req, res) => {
-        const { name, password } = req.body;
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        let user = await User.findOne({ name });
+    //get
+    getAll: async (req, res) => {
+        try {
+            const services = await User.find();
 
-        if (!user) {
-            return res.status(400).json({ msg: "Usuário não encontrado" });
+            res.json(services);
+
+        } catch (error) {
+            console.log(`Erro get ${error}`);
         }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ msg: "Senha incorreta" });
-        }
-
-        //return user with token
-        res.status(201).json({
-            _id: user._id,
-            name: user.name,
-            token: GenerateToken(user._id),
-        })
-
     },
 
+    //get individual
+    // get: async (req, res) => {
+    //     try {
+
+    //         //id -> req === get url
+    //         const id = req.params.id
+
+    //         const service = await User.findById(id);
+
+    //         if (!service) {
+    //             res.status(404).json({ msg: "Filme não encontrado" })
+    //             return;
+    //         }
+
+    //         res.json(service);
+
+    //     } catch (error) {
+    //         console.log(`Erro getIndividual ${error}`);
+    //     }
+    // },
+
+    //Delete Movie
+    // delete: async (req, res) => {
+    //     try {
+
+    //         const id = req.params.id;
+
+    //         const service = await User.findById(id)
+
+    //         if (!service) {
+    //             res.status(404).json({ msg: "Filme não encontrado" })
+    //             return;
+    //         }
+
+    //         const deleteMovie = await User.findByIdAndDelete(id);
+
+    //         res.status(200).json({ msg: `Filme ${deleteMovie.name} deletado com sucesso` })
+
+
+    //     } catch (error) {
+    //         console.log(`Erro delete ${error}`);
+    //     }
+    // }
 
 };
 
-module.exports = ServiceControllerUser;
+module.exports = ServiceController;
