@@ -13,6 +13,6 @@ router.route("/register").post((req, res) => ServiceController.register(req, res
 router.route("/login").post((req, res) => ServiceController.login(req, res));
 
 //UserOn
-router.route("/users/profile").get(AuthGuard, getcurrentUser, (req, res) => ServiceController.getAll(req, res));
+router.route("/profile").get(AuthGuard, getcurrentUser, (req, res) => ServiceController.getAll(req, res));
 
 module.exports = router;
