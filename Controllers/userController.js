@@ -2,6 +2,12 @@ const User = require("../Models/User");
 const bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
 
+//Genenate user token
+const GenerateToken = (id) => {
+    return jwt.sign({ id }, 'KS1486735ANFSAN36454BFGSAF45471PKPEKGPSAGK1454EDGG', {
+        expiresIn: "7d"
+    });
+};
 
 const ServiceController = {
 
@@ -63,7 +69,7 @@ const ServiceController = {
     // rota para login
     login: async (req, res) => {
         const { name, password } = req.body;
-        res.setHeader('Access-Control-Allow-Origin', '*');
+
         let user = await User.findOne({ name });
 
         if (!user) {
@@ -84,7 +90,6 @@ const ServiceController = {
 
     },
 
-    
     //get
     getAll: async (req, res) => {
         try {
@@ -97,49 +102,11 @@ const ServiceController = {
         }
     },
 
-    //get individual
-    // get: async (req, res) => {
-    //     try {
-
-    //         //id -> req === get url
-    //         const id = req.params.id
-
-    //         const service = await User.findById(id);
-
-    //         if (!service) {
-    //             res.status(404).json({ msg: "Filme não encontrado" })
-    //             return;
-    //         }
-
-    //         res.json(service);
-
-    //     } catch (error) {
-    //         console.log(`Erro getIndividual ${error}`);
-    //     }
-    // },
-
-    //Delete Movie
-    // delete: async (req, res) => {
-    //     try {
-
-    //         const id = req.params.id;
-
-    //         const service = await User.findById(id)
-
-    //         if (!service) {
-    //             res.status(404).json({ msg: "Filme não encontrado" })
-    //             return;
-    //         }
-
-    //         const deleteMovie = await User.findByIdAndDelete(id);
-
-    //         res.status(200).json({ msg: `Filme ${deleteMovie.name} deletado com sucesso` })
-
-
-    //     } catch (error) {
-    //         console.log(`Erro delete ${error}`);
-    //     }
-    // }
+     //get curret logged in user/Faz a validação do token para confirmar a autenticação
+    getcurrentUser: async (req, res) => {
+        const user = req.user;
+        res.status(200).json(user);
+    },
 
 };
 
