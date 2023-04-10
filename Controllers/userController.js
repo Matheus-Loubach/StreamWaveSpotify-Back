@@ -114,7 +114,6 @@ const ServiceController = {
     recentsMusicsUser: async (req, res) => {
         try {
             const { userId, name, album, artists } = req.body;
-            console.log('algo?',userId);
             //Create Favorites
             const Musics = {
                 userId,
@@ -141,7 +140,7 @@ const ServiceController = {
 
     //FavoriteMusic
     favoriteMusic: async (req, res) => {
-        console.log('reste', req);
+
         try {
             const { userId, name, album, artists, id } = req.body;
 
@@ -178,7 +177,7 @@ const ServiceController = {
         try {
             // Encontra as músicas do usuário ordenadas pela data de criação (da mais recente para a mais antiga)
             const latestMusics = await recentTrackSchema.find({ userId }).sort('-createdAt');
-            console.log('teste', latestMusics);
+    
             // Remove músicas excedentes, mantendo apenas as MAX_RECENT_TRACKS mais recentes
             if (latestMusics.length > MAX_RECENT_TRACKS) {
                 const tracksToDelete = latestMusics.slice(MAX_RECENT_TRACKS); // Seleciona as músicas mais antigas para deletar
@@ -192,7 +191,7 @@ const ServiceController = {
         }
     },
 
-    //Get para buscar as musicas favoritas do usuario
+    //Obtém as musicas favoritas do usuario
     favoriteMusicsGet: async (req, res) => {
         const MAX_FAVORITE_TRACKS = 10; // Define o limite máximo de músicas recentes
         const userId = req.user._id.toString();
@@ -203,6 +202,7 @@ const ServiceController = {
 
             if (favoritesMusics.length > MAX_FAVORITE_TRACKS) {
                 const tracksToDelete = favoritesMusics.slice(MAX_FAVORITE_TRACKS); // Seleciona as músicas mais antigas para deletar
+              
                 await FavoriteMusic.deleteMany({ _id: { $in: tracksToDelete.map(t => t._id) } }); // Deleta as músicas excedentes do banco de dados
                 favoritesMusics.splice(MAX_FAVORITE_TRACKS); // Remove as músicas excedentes da lista
             }
@@ -216,7 +216,7 @@ const ServiceController = {
 
     deleteMusicFavorite: async (req, res) => {
         const id = req.params.id; //id da musica a ser excluida
-        console.log('idMusica', req.params.id);
+
         //Procura pela musica
         try {
             const deletMusic = await FavoriteMusic.findByIddAndDelete(id);
