@@ -144,6 +144,13 @@ const ServiceController = {
         try {
             const { userId, name, album, artists, id } = req.body;
 
+
+            // Check if music is already favorited
+            const existingFavorite = await FavoriteMusic.findOne({ userId, id });
+            if (existingFavorite) {
+                return res.status(400).json({ message: "Música já está favoritada" });
+            }
+
             //Create Favorites
             const MusicsFavorites = {
                 userId,
@@ -173,11 +180,11 @@ const ServiceController = {
     recentMusics: async (req, res) => {
         const MAX_RECENT_TRACKS = 10; // Define o limite máximo de músicas recentes
         const userId = req.user._id.toString();
-  
+
         try {
             // Encontra as músicas do usuário ordenadas pela data de criação (da mais recente para a mais antiga)
             const latestMusics = await recentTrackSchema.find({ userId }).sort('-createdAt');
-    
+
             // Remove músicas excedentes, mantendo apenas as MAX_RECENT_TRACKS mais recentes
             if (latestMusics.length > MAX_RECENT_TRACKS) {
                 const tracksToDelete = latestMusics.slice(MAX_RECENT_TRACKS); // Seleciona as músicas mais antigas para deletar
@@ -202,7 +209,7 @@ const ServiceController = {
 
             if (favoritesMusics.length > MAX_FAVORITE_TRACKS) {
                 const tracksToDelete = favoritesMusics.slice(MAX_FAVORITE_TRACKS); // Seleciona as músicas mais antigas para deletar
-              
+
                 await FavoriteMusic.deleteMany({ _id: { $in: tracksToDelete.map(t => t._id) } }); // Deleta as músicas excedentes do banco de dados
                 favoritesMusics.splice(MAX_FAVORITE_TRACKS); // Remove as músicas excedentes da lista
             }
