@@ -12,8 +12,8 @@
 - jsonwebtoken (JWT) para autenticação de usuários
 - Middleware para autenticação de rotas
 
-Execução
-Inicie o servidor: npm run server
+# Execução
+- Inicie o servidor: npm run dev
 
 # Descrição das funcionalidades
 
@@ -24,3 +24,5 @@ Inicie o servidor: npm run server
 - recentsMusicsUser: adiciona uma nova música recente ao banco de dados com o id do usuário e as informações da música. Retorna uma mensagem de sucesso em caso de cadastro realizado com sucesso ou um erro em caso contrário.
 - favoriteMusic: adiciona uma nova música favorita ao banco de dados com o id do usuário e as informações da música. Verifica se a música já está favoritada antes de adicioná-la e retorna uma mensagem de erro em caso afirmativo. Retorna uma mensagem de sucesso em caso de cadastro realizado com sucesso ou um erro em caso contrário.
 - recentMusics: retorna as últimas músicas recentes adicionadas pelo usuário, até um máximo de 10, ordenadas pela data de criação (da mais recente para a mais antiga).
+
+- Front-end: https://github.com/Matheus-Loubach/StreamWaveSpotify-Front
