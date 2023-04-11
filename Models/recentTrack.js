@@ -10,6 +10,10 @@ const recentTrackSchema = mongoose.model('recentTrackSchema', {
         type: String,
         required: true
     },
+    id: {
+        type: String,
+        require: true
+    },
     album: {
         type: String,
         required: true

@@ -115,6 +115,9 @@ const ServiceController = {
         try {
             const { userId, name, album, artists } = req.body;
 
+            const musicExist = await recentTrackSchema.findOne({userId, name})
+    
+
             //Create Favorites
             const Musics = {
                 userId,
