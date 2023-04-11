@@ -113,10 +113,12 @@ const ServiceController = {
     //enviar as musicas para o banco de dados
     recentsMusicsUser: async (req, res) => {
         try {
-            const { userId, name, album, artists } = req.body;
+            const { userId, name, album, artists, id } = req.body;
 
-            const musicExist = await recentTrackSchema.findOne({userId, name})
-    
+            const musicExist = await recentTrackSchema.findOne({ userId, id })
+            if (musicExist) {
+                return res.status(400).json({ message: "Música já está salva" });
+            }
 
             //Create Favorites
             const Musics = {
