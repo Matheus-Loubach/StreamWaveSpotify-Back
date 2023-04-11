@@ -179,31 +179,35 @@ const ServiceController = {
 
     //Obtém as musicas recentes do usuario
     recentMusics: async (req, res) => {
-        const MAX_RECENT_TRACKS = 10;
+        const MAX_RECENT_TRACKS = 10; // Define o limite máximo de músicas recentes
         const userId = req.user._id.toString();
-        const musicId = req.body.id;
-    
+
         try {
+            // Encontra as músicas do usuário ordenadas pela data de criação (da mais recente para a mais antiga)
             const latestMusics = await recentTrackSchema.find({ userId }).sort('-createdAt');
-            let index = latestMusics.findIndex(music => music._id.toString() === latestMusics[0]._id.toString());
-            if (index !== -1) {
-                const music = latestMusics.splice(index, 1)[0];
+
+            // Adiciona apenas músicas que ainda não estejam presentes na lista de músicas recentes
+            const newMusics = req.body.musics.filter((music) => {
+                return latestMusics.findIndex((latestMusic) => latestMusic.id === music.id) === -1;
+            });
+
+            // Adiciona as novas músicas à lista de músicas recentes
+            for (const music of newMusics) {
+                await recentTrackSchema.create({ userId, music });
                 latestMusics.unshift(music);
-            } else {
-                const newMusic = await recentTrackSchema.create({ userId, musicId });
-                latestMusics.unshift(newMusic);
             }
-    
+
+            // Remove músicas excedentes, mantendo apenas as MAX_RECENT_TRACKS mais recentes
             if (latestMusics.length > MAX_RECENT_TRACKS) {
-                const tracksToDelete = latestMusics.slice(MAX_RECENT_TRACKS);
-                await recentTrackSchema.deleteMany({ _id: { $in: tracksToDelete.map(t => t._id) } });
-                latestMusics.splice(MAX_RECENT_TRACKS);
+                const tracksToDelete = latestMusics.slice(MAX_RECENT_TRACKS); // Seleciona as músicas mais antigas para deletar
+                await recentTrackSchema.deleteMany({ _id: { $in: tracksToDelete.map(t => t._id) } }); // Deleta as músicas excedentes do banco de dados
+                latestMusics.splice(MAX_RECENT_TRACKS); // Remove as músicas excedentes da lista
             }
-    
+
             res.json(latestMusics);
         } catch (error) {
             res.status(500).json({ error: 'Não foi possível buscar as músicas recentes.' });
-        }    
+        }
     },
 
     //Obtém as musicas favoritas do usuario
