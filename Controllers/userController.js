@@ -113,7 +113,13 @@ const ServiceController = {
     //enviar as musicas para o banco de dados
     recentsMusicsUser: async (req, res) => {
         try {
-            const { userId, name, album, artists } = req.body;
+            const { userId, name, album, artists, id } = req.body;
+
+            // Check if music is already recents
+            const existingFavorite = await FavoriteMusic.findOne({ userId, id });
+            if (id) {
+                return res.status(400).json({ message: "Música já está nos recentes" });
+            }
 
             //Create Favorites
             const Musics = {
@@ -185,17 +191,6 @@ const ServiceController = {
         try {
             // Encontra as músicas do usuário ordenadas pela data de criação (da mais recente para a mais antiga)
             const latestMusics = await recentTrackSchema.find({ userId }).sort('-createdAt');
-
-            // Adiciona apenas músicas que ainda não estejam presentes na lista de músicas recentes
-            const newMusics = req.body.musics.filter((music) => {
-                return latestMusics.findIndex((latestMusic) => latestMusic.id === music.id) === -1;
-            });
-
-            // Adiciona as novas músicas à lista de músicas recentes
-            for (const music of newMusics) {
-                await recentTrackSchema.create({ userId, music });
-                latestMusics.unshift(music);
-            }
 
             // Remove músicas excedentes, mantendo apenas as MAX_RECENT_TRACKS mais recentes
             if (latestMusics.length > MAX_RECENT_TRACKS) {
