@@ -179,63 +179,27 @@ const ServiceController = {
 
     //Obtém as musicas recentes do usuario
     recentMusics: async (req, res) => {
-        const MAX_RECENT_TRACKS = 10; // Define o limite máximo de músicas recentes
+        const MAX_RECENT_TRACKS = 10;
         const userId = req.user._id.toString();
+        const musicId = req.body.id;
 
         try {
-            // Encontra as músicas do usuário ordenadas pela data de criação (da mais recente para a mais antiga)
             const latestMusics = await recentTrackSchema.find({ userId }).sort('-createdAt');
+            let index = latestMusics.findIndex(music => music._id.toString() === musicId); // Verifica se a música mais recente já está na lista
+            if (index !== -1) { // Se a música já estiver na lista, move-a para o início da lista
+                const music = latestMusics.splice(index, 1)[0];
+                latestMusics.unshift(music);
+            } else { // Caso contrário, adiciona a música no início da lista
+                const newMusic = await recentTrackSchema.create({ userId, musicId });
+                latestMusics.unshift(newMusic);
+            }
 
             // Remove músicas excedentes, mantendo apenas as MAX_RECENT_TRACKS mais recentes
             if (latestMusics.length > MAX_RECENT_TRACKS) {
-                const tracksToDelete = latestMusics.slice(MAX_RECENT_TRACKS); // Seleciona as músicas mais antigas para deletar
-                await recentTrackSchema.deleteMany({ _id: { $in: tracksToDelete.map(t => t._id) } }); // Deleta as músicas excedentes do banco de dados
-                latestMusics.splice(MAX_RECENT_TRACKS); // Remove as músicas excedentes da lista
+                const tracksToDelete = latestMusics.slice(MAX_RECENT_TRACKS);
+                await recentTrackSchema.deleteMany({ _id: { $in: tracksToDelete.map(t => t._id) } });
+                latestMusics.splice(MAX_RECENT_TRACKS);
             }
-
-            // Verifica se a lista de latestMusics não está vazia antes de enviar a resposta
-            if (latestMusics.length > 0) {
-                res.json(latestMusics);
-            } else {
-                res.status(404).json({ error: 'Nenhuma música recente encontrada.' });
-            }
-        } catch (error) {
-            res.status(500).json({ error: 'Não foi possível buscar as músicas recentes.' });
-        }
-    },
-
-
-    // Obtém as musicas recentes do usuario
-    recentMusics: async (req, res) => {
-        const MAX_RECENT_TRACKS = 10; // Define o limite máximo de músicas recentes
-        const userId = req.user._id.toString();
-        const latestMusics = await recentTrackSchema.find({ userId }).sort('-createdAt');
-
-        try {
-            let newTrack = req.body.trackId; // ID da nova música adicionada
-            let existingTrack = await recentTrackSchema.findOne({ userId, trackId: newTrack }); // Verifica se a nova música já existe na lista de músicas recentes
-
-            // Se a nova música já existe na lista, remove sua ocorrência atual e a insere no início da lista
-            if (existingTrack) {
-                await recentTrackSchema.deleteOne({ userId, trackId: newTrack });
-            }
-
-            // Adiciona a nova música ao início da lista de músicas recentes
-            latestMusics.unshift({
-                userId,
-                trackId: newTrack
-            });
-
-            // Remove músicas excedentes, mantendo apenas as MAX_RECENT_TRACKS mais recentes
-            if (latestMusics.length > MAX_RECENT_TRACKS) {
-                const tracksToDelete = latestMusics.slice(MAX_RECENT_TRACKS); // Seleciona as músicas mais antigas para deletar
-                await recentTrackSchema.deleteMany({ _id: { $in: tracksToDelete.map(t => t._id) } }); // Deleta as músicas excedentes do banco de dados
-                latestMusics.splice(MAX_RECENT_TRACKS); // Remove as músicas excedentes da lista
-            }
-
-            // Salva a lista atualizada de músicas recentes no banco de dados
-            await recentTrackSchema.deleteMany({ userId });
-            await recentTrackSchema.insertMany(latestMusics);
 
             res.json(latestMusics);
         } catch (error) {
@@ -243,26 +207,48 @@ const ServiceController = {
         }
     },
 
+    //Obtém as musicas favoritas do usuario
+    favoriteMusicsGet: async (req, res) => {
+        const MAX_FAVORITE_TRACKS = 10; // Define o limite máximo de músicas recentes
+        const userId = req.user._id.toString();
 
-    // deleteMusicFavorite: async (req, res) => {
-    //     const id = req.params.id; //id da musica a ser excluida
 
-    //     //Procura pela musica
-    //     try {
-    //         const deletMusic = await FavoriteMusic.findByIddAndDelete(id);
-    //         if (!deletMusic) {
-    //             return res.status(404).json({ error: "Música não encontrada" })
-    //         }
+        try {
+            const favoritesMusics = await FavoriteMusic.find({ userId }).sort('-createdAt');
 
-    //         //return success
-    //         res.status(204).json({ message: "Sucesso ao excluir a música" });
+            if (favoritesMusics.length > MAX_FAVORITE_TRACKS) {
+                const tracksToDelete = favoritesMusics.slice(MAX_FAVORITE_TRACKS); // Seleciona as músicas mais antigas para deletar
 
-    //     } catch (error) {
-    //         res.status(204).json({ error: "Erro ao excluir a música", error });
+                await FavoriteMusic.deleteMany({ _id: { $in: tracksToDelete.map(t => t._id) } }); // Deleta as músicas excedentes do banco de dados
+                favoritesMusics.splice(MAX_FAVORITE_TRACKS); // Remove as músicas excedentes da lista
+            }
 
-    //     }
+            res.json(favoritesMusics);
+        } catch (error) {
+            res.status(500).json({ error: 'Não foi possível buscar as músicas Favoritas.' });
+        }
+    },
 
-    // },
+
+    deleteMusicFavorite: async (req, res) => {
+        const id = req.params.id; //id da musica a ser excluida
+
+        //Procura pela musica
+        try {
+            const deletMusic = await FavoriteMusic.findByIddAndDelete(id);
+            if (!deletMusic) {
+                return res.status(404).json({ error: "Música não encontrada" })
+            }
+
+            //return success
+            res.status(204).json({ message: "Sucesso ao excluir a música" });
+
+        } catch (error) {
+            res.status(204).json({ error: "Erro ao excluir a música", error });
+
+        }
+
+    },
 };
 
 module.exports = ServiceController;
