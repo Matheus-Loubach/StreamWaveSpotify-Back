@@ -115,29 +115,23 @@ const ServiceController = {
         try {
             const { userId, name, album, artists, id } = req.body;
 
-            // Verifica se a música já existe nos recentes
-            const existingFavorite = await recentTrackSchema.findOne({ userId, id });
-            if (existingFavorite) {
-                return res.status(400).json({ message: "Música já está nos recentes" });
-            }
-
-            //Create Favorites
+            //Create Recents
             const Musics = {
                 userId,
+                id,
                 name,
                 album,
                 artists,
             };
 
-            const NewUser = await recentTrackSchema.create(Musics)
+            const NewRecents = await recentTrackSchema.create(Musics)
 
-            if (!NewUser) {
-                return res.status(422).json({ errors: ["Houver um erro,tente novamente mais tarde"] })
+            if (!NewRecents) {
+                return res.status(422).json({ errors: ["Erro ao adicionar aos recentes"] })
 
             }
             //return success
-            res.status(201).json("Cadastro feito com sucesso");
-
+            res.status(201).json("Musica adicionada aos recentes");
 
         } catch (err) {
             console.error(err);
