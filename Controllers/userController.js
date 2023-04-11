@@ -205,25 +205,41 @@ const ServiceController = {
     },
 
 
-    //Obtém as musicas favoritas do usuario
-    favoriteMusicsGet: async (req, res) => {
-        const MAX_FAVORITE_TRACKS = 10; // Define o limite máximo de músicas recentes
+    // Obtém as musicas recentes do usuario
+    recentMusics: async (req, res) => {
+        const MAX_RECENT_TRACKS = 10; // Define o limite máximo de músicas recentes
         const userId = req.user._id.toString();
-
+        const latestMusics = await recentTrackSchema.find({ userId }).sort('-createdAt');
 
         try {
-            const favoritesMusics = await FavoriteMusic.find({ userId }).sort('-createdAt');
+            let newTrack = req.body.trackId; // ID da nova música adicionada
+            let existingTrack = await recentTrackSchema.findOne({ userId, trackId: newTrack }); // Verifica se a nova música já existe na lista de músicas recentes
 
-            if (favoritesMusics.length > MAX_FAVORITE_TRACKS) {
-                const tracksToDelete = favoritesMusics.slice(MAX_FAVORITE_TRACKS); // Seleciona as músicas mais antigas para deletar
-
-                await FavoriteMusic.deleteMany({ _id: { $in: tracksToDelete.map(t => t._id) } }); // Deleta as músicas excedentes do banco de dados
-                favoritesMusics.splice(MAX_FAVORITE_TRACKS); // Remove as músicas excedentes da lista
+            // Se a nova música já existe na lista, remove sua ocorrência atual e a insere no início da lista
+            if (existingTrack) {
+                await recentTrackSchema.deleteOne({ userId, trackId: newTrack });
             }
 
-            res.json(favoritesMusics);
+            // Adiciona a nova música ao início da lista de músicas recentes
+            latestMusics.unshift({
+                userId,
+                trackId: newTrack
+            });
+
+            // Remove músicas excedentes, mantendo apenas as MAX_RECENT_TRACKS mais recentes
+            if (latestMusics.length > MAX_RECENT_TRACKS) {
+                const tracksToDelete = latestMusics.slice(MAX_RECENT_TRACKS); // Seleciona as músicas mais antigas para deletar
+                await recentTrackSchema.deleteMany({ _id: { $in: tracksToDelete.map(t => t._id) } }); // Deleta as músicas excedentes do banco de dados
+                latestMusics.splice(MAX_RECENT_TRACKS); // Remove as músicas excedentes da lista
+            }
+
+            // Salva a lista atualizada de músicas recentes no banco de dados
+            await recentTrackSchema.deleteMany({ userId });
+            await recentTrackSchema.insertMany(latestMusics);
+
+            res.json(latestMusics);
         } catch (error) {
-            res.status(500).json({ error: 'Não foi possível buscar as músicas Favoritas.' });
+            res.status(500).json({ error: 'Não foi possível buscar as músicas recentes.' });
         }
     },
 
