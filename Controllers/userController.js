@@ -182,29 +182,28 @@ const ServiceController = {
         const MAX_RECENT_TRACKS = 10;
         const userId = req.user._id.toString();
         const musicId = req.body.id;
-
+    
         try {
             const latestMusics = await recentTrackSchema.find({ userId }).sort('-createdAt');
-            let index = latestMusics.findIndex(music => music._id.toString() === musicId); // Verifica se a música mais recente já está na lista
-            if (index !== -1) { // Se a música já estiver na lista, move-a para o início da lista
+            let index = latestMusics.findIndex(music => music._id.toString() === latestMusics[0]._id.toString());
+            if (index !== -1) {
                 const music = latestMusics.splice(index, 1)[0];
                 latestMusics.unshift(music);
-            } else { // Caso contrário, adiciona a música no início da lista
+            } else {
                 const newMusic = await recentTrackSchema.create({ userId, musicId });
                 latestMusics.unshift(newMusic);
             }
-
-            // Remove músicas excedentes, mantendo apenas as MAX_RECENT_TRACKS mais recentes
+    
             if (latestMusics.length > MAX_RECENT_TRACKS) {
                 const tracksToDelete = latestMusics.slice(MAX_RECENT_TRACKS);
                 await recentTrackSchema.deleteMany({ _id: { $in: tracksToDelete.map(t => t._id) } });
                 latestMusics.splice(MAX_RECENT_TRACKS);
             }
-
+    
             res.json(latestMusics);
         } catch (error) {
             res.status(500).json({ error: 'Não foi possível buscar as músicas recentes.' });
-        }
+        }    
     },
 
     //Obtém as musicas favoritas do usuario
