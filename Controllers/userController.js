@@ -115,9 +115,9 @@ const ServiceController = {
         try {
             const { userId, name, album, artists, id } = req.body;
 
-            // Check if music is already recents
-            const existingFavorite = await FavoriteMusic.findOne({ userId, id });
-            if (id) {
+            // Verifica se a música já existe nos recentes
+            const existingFavorite = await recentTrackSchema.findOne({ userId, id });
+            if (existingFavorite) {
                 return res.status(400).json({ message: "Música já está nos recentes" });
             }
 
