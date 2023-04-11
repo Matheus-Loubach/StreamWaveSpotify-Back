@@ -113,25 +113,25 @@ const ServiceController = {
     //enviar as musicas para o banco de dados
     recentsMusicsUser: async (req, res) => {
         try {
-            const { userId, name, album, artists, id } = req.body;
+            const { userId, name, album, artists } = req.body;
 
-            //Create Recents
+            //Create Favorites
             const Musics = {
                 userId,
-                id,
                 name,
                 album,
                 artists,
             };
 
-            const NewRecents = await recentTrackSchema.create(Musics)
+            const NewUser = await recentTrackSchema.create(Musics)
 
-            if (!NewRecents) {
-                return res.status(422).json({ errors: ["Erro ao adicionar aos recentes"] })
+            if (!NewUser) {
+                return res.status(422).json({ errors: ["Houver um erro,tente novamente mais tarde"] })
 
             }
             //return success
-            res.status(201).json("Musica adicionada aos recentes");
+            res.status(201).json("Cadastro feito com sucesso");
+
 
         } catch (err) {
             console.error(err);

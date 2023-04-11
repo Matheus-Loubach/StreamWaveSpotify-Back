@@ -6,10 +6,6 @@ const recentTrackSchema = mongoose.model('recentTrackSchema', {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    id: {
-        type: id,
-        required: true
-    },
     name: {
         type: String,
         required: true
@@ -18,7 +14,7 @@ const recentTrackSchema = mongoose.model('recentTrackSchema', {
         type: String,
         required: true
     },
-    artists: {
+    artists:{
         type: String,
         require: true
     },
