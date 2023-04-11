@@ -114,6 +114,7 @@ const ServiceController = {
     recentsMusicsUser: async (req, res) => {
         try {
             const { userId, name, album, artists } = req.body;
+
             //Create Favorites
             const Musics = {
                 userId,
@@ -192,11 +193,17 @@ const ServiceController = {
                 latestMusics.splice(MAX_RECENT_TRACKS); // Remove as músicas excedentes da lista
             }
 
-            res.json(latestMusics);
+            // Verifica se a lista de latestMusics não está vazia antes de enviar a resposta
+            if (latestMusics.length > 0) {
+                res.json(latestMusics);
+            } else {
+                res.status(404).json({ error: 'Nenhuma música recente encontrada.' });
+            }
         } catch (error) {
             res.status(500).json({ error: 'Não foi possível buscar as músicas recentes.' });
         }
     },
+
 
     //Obtém as musicas favoritas do usuario
     favoriteMusicsGet: async (req, res) => {
