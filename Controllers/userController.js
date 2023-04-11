@@ -228,25 +228,25 @@ const ServiceController = {
     },
 
 
-    deleteMusicFavorite: async (req, res) => {
-        const id = req.params.id; //id da musica a ser excluida
+    // deleteMusicFavorite: async (req, res) => {
+    //     const id = req.params.id; //id da musica a ser excluida
 
-        //Procura pela musica
-        try {
-            const deletMusic = await FavoriteMusic.findByIddAndDelete(id);
-            if (!deletMusic) {
-                return res.status(404).json({ error: "Música não encontrada" })
-            }
+    //     //Procura pela musica
+    //     try {
+    //         const deletMusic = await FavoriteMusic.findByIddAndDelete(id);
+    //         if (!deletMusic) {
+    //             return res.status(404).json({ error: "Música não encontrada" })
+    //         }
 
-            //return success
-            res.status(204).json({ message: "Sucesso ao excluir a música" });
+    //         //return success
+    //         res.status(204).json({ message: "Sucesso ao excluir a música" });
 
-        } catch (error) {
-            res.status(204).json({ error: "Erro ao excluir a música", error });
+    //     } catch (error) {
+    //         res.status(204).json({ error: "Erro ao excluir a música", error });
 
-        }
+    //     }
 
-    },
+    // },
 };
 
 module.exports = ServiceController;
