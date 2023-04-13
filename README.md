@@ -1,4 +1,4 @@
-## Funcionalidades do Back-end do Projeto StreamWave(clone do spotify)
+## Funcionalidades do Back-end do Projeto StreamWave(Streaming de músicas)
 
 # Pré-requisitos
 - NodeJS e NPM instalados
