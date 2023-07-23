@@ -16,7 +16,6 @@ router.route("/login").post((req, res) => ServiceController.login(req, res));
 //UserOn
 router.route("/profile").get(AuthGuard, getcurrentUser, (req, res) => ServiceController.getAll(req, res));
 
-
 //Pegar as musicas recentes do usuario
 router.route("/recent-tracks/:userId").get(AuthGuard,(req, res) => ServiceController.recentMusics(req, res));
 
