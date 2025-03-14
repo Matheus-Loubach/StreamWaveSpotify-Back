@@ -12,7 +12,7 @@ export default class AuthController {
 
   async register(req: any, res: any) {
 
-    const { name, email, password, passwordconf } = req.body;
+    const { name, email, password, passwordConf } = req.body;
 
     const user = await userModel.findOne({ name });
     const emailExists = await userModel.findOne({ email });
@@ -33,7 +33,7 @@ export default class AuthController {
       return res.status(422).json({ error: "E-mail Obrigatório" });
     }
 
-    if (password !== passwordconf) {
+    if (password !== passwordConf) {
       return res.status(422).json({ error: "As senhas não correspondem" });
     }
 
