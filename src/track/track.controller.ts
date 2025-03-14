@@ -124,6 +124,7 @@ export default class trackController {
         link: track.link,
         preview: track.preview,
         id: track.id,
+        isFavorite: true
       });
 
       if (!newFavorite) {
@@ -181,9 +182,11 @@ export default class trackController {
 
   async removeMusicFavorite(req: any, res: any) {
     const { id } = req.params;
+    const { userId } = req.body;
 
     try {
-      const deletedMusic = await favoriteMusic.findByIdAndDelete(id);
+      const existingFavorite = await favoriteMusic.findOne({ userId, id });
+      const deletedMusic = await favoriteMusic.findByIdAndDelete(existingFavorite._id);
       if (!deletedMusic) {
         return res.status(404).json({ error: "Música não encontrada" });
       }

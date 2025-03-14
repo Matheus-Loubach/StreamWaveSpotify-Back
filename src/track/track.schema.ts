@@ -37,6 +37,9 @@ const MusicSchema = new Schema<any>({
     type: String,
     require: true
   },
+  isFavorite: {
+    type: Boolean
+  }
 }, DefaultSchemaOptions);
 
 const favoriteMusic = mongoose.model("favoriteMusic", MusicSchema);
